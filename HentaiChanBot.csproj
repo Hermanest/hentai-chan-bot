@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <RootNamespace>HentaiChanBot</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<LangVersion>11</LangVersion>
+	<Configurations>Debug;Release</Configurations>
+	<Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AngleSharp" Version="1.0.2-alpha-278" />
+    <PackageReference Include="Discord.Net.Commands" Version="3.9.0">
+      <TreatAsUsed>true</TreatAsUsed>
+    </PackageReference>
+    <PackageReference Include="Discord.Net.Core" Version="3.9.0">
+      <TreatAsUsed>true</TreatAsUsed>
+    </PackageReference>
+    <PackageReference Include="Discord.Net.Interactions" Version="3.9.0">
+      <TreatAsUsed>true</TreatAsUsed>
+    </PackageReference>
+    <PackageReference Include="Discord.Net.WebSocket" Version="3.9.0">
+      <TreatAsUsed>true</TreatAsUsed>
+    </PackageReference>
+    <PackageReference Include="JetBrains.Annotations" Version="2023.2.0-eap1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0">
+      <TreatAsUsed>true</TreatAsUsed>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Discord.Addons">
+      <HintPath>Refs\Discord.Addons.dll</HintPath>
+    </Reference>
+    <Reference Include="Discord.Addons.SetupModule">
+      <HintPath>Refs\Discord.Addons.SetupModule.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
