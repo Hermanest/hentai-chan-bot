@@ -48,10 +48,7 @@ namespace HentaiChanBot.Modules {
                 return;
             }
 
-            _logger?.LogDebug("Attempting to remove original message...");
-            await DeleteOriginalResponseAsync();
-
-            _logger?.LogDebug("Sending response...");
+            _logger?.LogDebug("Attempting to publish...");
             var sentMsg = await msgChannel!.SendMessageAsync(embed:
                 BuildEmbed(attachment, Context.User, artists, characters, description));
 
@@ -59,6 +56,10 @@ namespace HentaiChanBot.Modules {
             await sentMsg.AddReactionsAsync(new[] {
                 smashEmote, passEmote
             });
+
+            _logger?.LogDebug("Attempting to modify original message...");
+            await ModifyOriginalResponseAsync(x => x
+                .Content = $"**Successfully published to** <#{msgChannel.Id}>");
             _logger?.LogDebug("Command finished");
         }
 
