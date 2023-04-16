@@ -62,9 +62,18 @@ internal class Rule34Api {
         var artists = GetElement(doc, "tag-type-artist tag");
         var sampleUrl = doc.All.FirstOrDefault(x =>
             x.HasAttributeValue("id", "image"))?.GetAttribute("src");
+        var isVideo = false;
+        if (sampleUrl is null) {
+            sampleUrl = doc.All.FirstOrDefault(x => 
+                    x.HasAttributeValue("id", "gelcomVideoPlayer"))?
+                .FirstElementChild?.GetAttribute("src");
+            isVideo = sampleUrl is not null;
+        }
         //var tags = GetElement(doc, "tag-type-general tag");
         return new() {
             id = id,
+            isVideo = isVideo,
+            postUrl = GetPostUrl(id),
             sampleUrl = sampleUrl,
             artists = artists,
             characters = characters,

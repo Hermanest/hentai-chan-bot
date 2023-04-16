@@ -15,6 +15,7 @@ namespace HentaiChanBot.Modules {
 
         private const int RULE34_PID_INCREMENT = 42;
 
+        private readonly HttpClient _client = new();
         private readonly Rule34Api _r34Api;
         private readonly ILogger? _logger;
 
@@ -42,7 +43,6 @@ namespace HentaiChanBot.Modules {
             }
 
             _logger?.LogDebug("Attempting to get post...");
-            var postViewUrl = _r34Api.GetPostUrl(id.Value);
             var data = await _r34Api.GetPostAsync(id.Value);
             if (data is null) {
                 await ModifyWithErrorAsync("Failed to get post with received id");
@@ -51,11 +51,19 @@ namespace HentaiChanBot.Modules {
 
             _logger?.LogDebug("Attempting to create embed...");
             try {
-                var embed = BuildHentaiEmbed(data.sampleUrl!, postViewUrl,
-                    string.Join(", ", data.artists!), string.Join(", ", data.characters!));
-                await ModifyOriginalResponseAsync(x => x.Embed = embed);
+                var embed = GetHentaiEmbedBuilder(
+                    data.sampleUrl!,
+                    data.postUrl,
+                    string.Join(", ", data.artists!),
+                    string.Join(", ", data.characters!));
+                var url = data.sampleUrl;
+                var canUpload = data.isVideo;
+                if (!canUpload || url is null || !await ModifyWithVideoAsync(url, x => x.Embed = embed.Build())) {
+                    if (canUpload) embed.WithFooter("❌ Unable to load preview");
+                    await ModifyOriginalResponseAsync(x => x.Embed = embed.Build());
+                }
             } catch (Exception ex) {
-                await ModifyWithErrorAsync("Internal error:\r\n" + ex);
+                await ModifyWithErrorAsync(ex);
                 return;
             }
             _logger?.LogDebug("Command completed");
@@ -78,6 +86,23 @@ namespace HentaiChanBot.Modules {
             await ModifyOriginalResponseAsync(x => x.Embed = BuildAutocompleteEmbed(tags));
         }
 
+        private async Task<bool> ModifyWithVideoAsync(string url, Action<MessageProperties> callback) {
+            try {
+                _logger?.LogDebug("Attempting to request video stream...");
+                await using var stream = await _client.GetStreamAsync(url);
+                _logger?.LogDebug("Attempting to upload file to the discord");
+                await ModifyOriginalResponseAsync(x => {
+                    x.Attachments = new[] {
+                        new FileAttachment(stream, "video.mp4")
+                    };
+                    callback(x);
+                });
+            } catch (Exception ex) {
+                return false;
+            }
+            return true;
+        }
+
         private static Embed BuildAutocompleteEmbed(IEnumerable<R34Tag> tags) => new EmbedBuilder()
             .WithTitle("Relevant tags:")
             .WithColor(Color.DarkGreen)
@@ -89,7 +114,7 @@ namespace HentaiChanBot.Modules {
                     .WithIsInline(true)))
             .Build();
 
-        private static Embed BuildHentaiEmbed(string imageUrl, string? postUrl, string artists, string characters) => EmbedUtils
-            .BuildImageEmbed("Rule34 Post", null, Color.DarkGreen, imageUrl, postUrl, artists, characters, null);
+        private static EmbedBuilder GetHentaiEmbedBuilder(string? imageUrl, string? postUrl, string artists, string characters) => EmbedUtils
+            .GetImageEmbedBuilder("Rule34 Post", null, Color.DarkGreen, imageUrl, postUrl, artists, characters, null);
     }
 }
