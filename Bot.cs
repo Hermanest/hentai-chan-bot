@@ -6,7 +6,7 @@ using HentaiChanBot.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Discord.Addons.Data;
-using Discord.Addons.SetupModule;
+using Discord.Addons.SetupModule.Utils;
 using HentaiChanBot.API.Rule34;
 using HentaiChanBot.Modules;
 
