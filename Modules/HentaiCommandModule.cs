@@ -22,7 +22,7 @@ namespace HentaiChanBot.Modules {
         #region hentai
 
         [SlashCommand("hentai", "Sends random hentai pic from r34 based on the tags"), NsfwCommand(true), UsedImplicitly]
-        public async Task HandleHentaiCommand(string tags) {
+        private async Task HandleHentaiCommand(string tags) {
             _logger?.LogDebug("Initiated hentai");
             await DeferAsync();
 
@@ -88,14 +88,14 @@ namespace HentaiChanBot.Modules {
         }
 
         private static EmbedBuilder GetHentaiEmbedBuilder(string? imageUrl, string? postUrl, string artists, string characters) => EmbedUtils
-            .GetImageEmbedBuilder("Rule34 Post", null, Color.DarkGreen, imageUrl, postUrl, artists, characters, null);
+            .GetImageEmbedBuilder("Rule34 Post", null, Color.DarkGreen, imageUrl, postUrl, artists, characters, null, null);
 
         #endregion
 
         #region hentai-tag
 
         [SlashCommand("hentai-tag", "Suggests tags from r34 based on the input"), NsfwCommand(true), UsedImplicitly]
-        public async Task HandleTagCommand(string input) {
+        private async Task HandleTagCommand(string input) {
             _logger?.LogDebug("Initiated hentai-tag");
             await DeferAsync();
             _logger?.LogDebug("Attempting to get autocomplete tags...");

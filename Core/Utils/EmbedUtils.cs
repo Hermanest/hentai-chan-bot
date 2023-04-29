@@ -9,14 +9,15 @@ public static class EmbedUtils {
         IUser? user,
         Color color,
         string imageUrl,
-        string? titleUrl,
-        string? artists,
-        string? characters,
-        string? description)
+        string? titleUrl = null,
+        string? artists = null,
+        string? characters = null,
+        string? description = null,
+        IUser? originalUser = null)
         => GetImageEmbedBuilder(title,
             user, color, imageUrl,
             titleUrl, artists, characters,
-            description).Build();
+            description, originalUser).Build();
 
     public static EmbedBuilder GetImageEmbedBuilder(
         string? title,
@@ -26,7 +27,8 @@ public static class EmbedUtils {
         string? titleUrl,
         string? artists,
         string? characters,
-        string? description)
+        string? description,
+        IUser? originalUser)
         => new EmbedBuilder()
             .If(!string.IsNullOrWhiteSpace(title),
                 x => x.WithTitle(title))
@@ -34,8 +36,8 @@ public static class EmbedUtils {
                 .WithAuthor(new EmbedAuthorBuilder()
                     .WithName(user!.Username)
                     .WithIconUrl(user.GetAvatarUrl())))
-            .If(!string.IsNullOrWhiteSpace(imageUrl), 
-                x=> x.WithImageUrl(imageUrl))
+            .If(!string.IsNullOrWhiteSpace(imageUrl),
+                x => x.WithImageUrl(imageUrl))
             .WithUrl(titleUrl)
             .WithColor(color)
             .WithFields(new List<EmbedFieldBuilder>()
@@ -50,5 +52,7 @@ public static class EmbedUtils {
                 .AppendIf(!string.IsNullOrWhiteSpace(description),
                     () => new EmbedFieldBuilder()
                         .WithName("Description")
-                        .WithValue(description)));
+                        .WithValue(description)))
+            .If(originalUser is not null, x => x
+                .WithFooter($"Original message by: {originalUser!.Username}"));
 }

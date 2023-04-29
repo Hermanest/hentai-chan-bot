@@ -1,6 +1,9 @@
-﻿namespace HentaiChanBot.API.Rule34; 
+﻿using JetBrains.Annotations;
 
-public class R34Tag {
+namespace HentaiChanBot.API.Rule34; 
+
+[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
+internal class R34Tag {
     public string? label;
     public string? value;
     public string? type;
