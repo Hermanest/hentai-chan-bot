@@ -45,7 +45,7 @@ namespace HentaiChanBot.Modules {
             }
 
             _logger?.LogDebug("Attempting to get the post...");
-            if (await _r34Api.GetPostAsync(id.Value) is not {} data) {
+            if (await _r34Api.GetPostAsync(id.Value) is not { } data) {
                 await ModifyWithErrorAsync("Failed to get post with received id");
                 return;
             }
@@ -58,33 +58,13 @@ namespace HentaiChanBot.Modules {
                     string.Join(", ", data.artists!),
                     string.Join(", ", data.characters!));
                 var url = data.sampleUrl;
-                var canUpload = data.isVideo;
-                if (!canUpload || url is null || !await ModifyWithVideoAsync(url, x => x.Embed = embed.Build())) {
-                    if (canUpload) embed.WithFooter("❌ Unable to load preview");
-                    await ModifyOriginalResponseAsync(x => x.Embed = embed.Build());
-                }
+                if (url is null) embed.WithFooter("❌ Unable to load preview");
+                await ModifyWithEmbedAsync(embed.Build());
             } catch (Exception ex) {
                 await ModifyWithErrorAsync(ex);
                 return;
             }
             _logger?.LogDebug("Finished hentai");
-        }
-
-        private async Task<bool> ModifyWithVideoAsync(string url, Action<MessageProperties> callback) {
-            try {
-                _logger?.LogDebug("Attempting to request video stream...");
-                await using var stream = await _client.GetStreamAsync(url);
-                _logger?.LogDebug("Attempting to upload file to the discord...");
-                await ModifyOriginalResponseAsync(x => {
-                    x.Attachments = new[] {
-                        new FileAttachment(stream, "video.mp4")
-                    };
-                    callback(x);
-                });
-            } catch (Exception) {
-                return false;
-            }
-            return true;
         }
 
         private static EmbedBuilder GetHentaiEmbedBuilder(string? imageUrl, string? postUrl, string artists, string characters) => EmbedUtils
