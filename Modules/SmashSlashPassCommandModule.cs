@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using System.Text.RegularExpressions;
+using Discord;
 using Discord.Addons;
 using Discord.Addons.Utils;
 using Discord.Interactions;
@@ -25,6 +26,7 @@ namespace HentaiChanBot.Modules {
             _client.SelectMenuExecuted -= HandleSelectMenuExecuted;
         }
 
+        private readonly HttpClient _httpClient = new();
         private readonly DiscordSocketClient _client;
         private readonly ILogger? _logger;
 
@@ -40,7 +42,7 @@ namespace HentaiChanBot.Modules {
         }
 
         #region smash-slash-pass
-        
+
         [SlashCommand("smash-slash-pass", "Sends voting post to the smash-slash-pass channel"), UsedImplicitly]
         private Task HandleCommandWrapper(
             IAttachment? attachment = null,
@@ -97,6 +99,31 @@ namespace HentaiChanBot.Modules {
                 return;
             }
 
+            if (conf.CacheChannelId is not { } cacheChannelId) goto ContinuationPoint;
+
+            _logger?.LogDebug("Attempting to get cache channel...");
+            if (await Context.Guild.GetChannelAsync(cacheChannelId) is not { } cacheChannel) {
+                await ModifyWithErrorAsync("Cache channel specified, but it's invalid");
+                return;
+            }
+
+            _logger?.LogDebug("Validating cache channel...");
+            if (cacheChannel.GetChannelType() is not ChannelType.Text) {
+                await ModifyWithErrorAsync("Channel should be generic text channel");
+                return;
+            }
+
+            _logger?.LogDebug("Caching...");
+            await using (var stream = await _httpClient.GetStreamAsync(link)) {
+                var extension = Regex.Matches(link, @"\.([^\/?]+)").Last();
+                var message = await (cacheChannel as IMessageChannel)!.SendFileAsync(
+                    new FileAttachment(stream, $"cachedImage{extension}"),
+                    "**Ignore this** \nThis channel is marked as cache channel. This helps the bot to prevent images from being deleted from discord servers.");
+                link = message.Attachments.FirstOrDefault()?.Url ?? link;
+            }
+
+            ContinuationPoint: ;
+
             _logger?.LogDebug("Attempting to get channel...");
             if (await Context.Guild.GetChannelAsync(conf.ChannelId) is not { } channel) {
                 await ModifyWithErrorAsync("Invalid channel specified");
@@ -127,17 +154,16 @@ namespace HentaiChanBot.Modules {
                 smashEmote, passEmote
             });
 
-            _logger?.LogDebug("Attempting to modify original message...");
-
+            _logger?.LogDebug("Attempting to modify the original message...");
             await ModifyOriginalResponseAsync(x => x.Embed =
                 DiscordUtils.BuildSuccessEmbed($"Successfully published to <#{msgChannel.Id}>"));
             _logger?.LogDebug("Finished");
         }
-        
+
         #endregion
 
         #region Smash Slash Pass (message)
-        
+
         [MessageCommand("Smash Slash Pass"), UsedImplicitly]
         private async Task HandleMessageCommand(
             IMessage msg
@@ -205,7 +231,7 @@ namespace HentaiChanBot.Modules {
             await HandleCommand(link: link.Replace("||", ""), isDirectCall: false);
             _selectorId = null;
         }
-        
+
         #endregion
     }
 }
